@@ -1,19 +1,12 @@
 #include<ctype.h>
 #include<math.h>
 #include<stdio.h>
+#include<string.h>
 #include<termios.h>
 #include<unistd.h>
 #include"eval.h"
 #define ring putchar('\a')
-#define addop(t, f)do{if(neg)num *= -1;if(oplen == 0)startval = num;else oparr[oplen - 1].second = num;oparr[oplen].func.t = f;oparr[oplen++].second = num = NAN;}while(0)
-double addition(double x, double y);
-double subtraction(double x, double y);
-double multiplication(double x, double y);
-double division(double x, double y);
-double exponentiation(double x, double y);
-double cot(double x);
-double sec(double x);
-double csc(double x);
+#define addop(t, f)do{if(neg)num *= -1;m = 1;if(oplen == 0)startval = num;else oparr[oplen - 1].second = num;oparr[oplen].func.t = f;oparr[oplen++].second = num = NAN;}while(0)
 int glochar(void)
 {
     return tolower(getchar());
@@ -23,14 +16,17 @@ int main(int argl, char *argv[])
     double num, startval = NAN;
     double m = 1;
     char neg = 0;
+    char space[441];
     struct op oparr[91];
-    unsigned oplen = 0;
+    unsigned exprlen = 0, oplen = 0;
     struct termios old, curr;
     tcgetattr(STDIN_FILENO, &old);
     curr = old;
     curr.c_lflag &= ~(ECHO | ICANON);
     tcsetattr(STDIN_FILENO, TCSANOW, &curr);
     setvbuf(stdout, NULL, _IONBF, 0);
+    memset(space, ' ', sizeof space);
+    space[0] = '\r';
     for(int ch = glochar(); ch != 'q'; ch = glochar())
     {
         switch(ch)
@@ -86,7 +82,7 @@ int main(int argl, char *argv[])
             case'=':
             case'\n':
                 oparr[oplen - 1].second = num;
-                printf("%f\n", eval(startval, oparr, oplen));
+                printf("\n%f\n", eval(startval, oparr, oplen));
                 num = startval = NAN;
                 oplen = 0;
                 break;
@@ -110,6 +106,14 @@ int main(int argl, char *argv[])
                     m = 0.1;
                 else
                     ring;
+        }
+        if(startval == startval)
+        {
+            fwrite(space, 1, exprlen + 1, stdout);
+            putchar('\r');
+            exprlen = dispexpr(startval, oparr, oplen);
+            if(num == num)
+                exprlen += printf("%.3f", num);
         }
     }
     tcsetattr(STDIN_FILENO, TCSANOW, &old);
