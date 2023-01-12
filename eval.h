@@ -20,6 +20,7 @@ double exponentiation(double x, double y);
 double cot(double x);
 double sec(double x);
 double csc(double x);
+void putnum(double n, char iso);
 unsigned dispexpr(double start, const struct op *arr, unsigned len);
 double eval(double start, struct op *arr, unsigned len);
 #endif

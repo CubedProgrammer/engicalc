@@ -44,6 +44,34 @@ unsigned bfname(char *expr, double(*func)(double x, double y))
         --len;
     return len;
 }
+void putnum(double n, char iso)
+{
+    char cbuf[31];
+    char *ptr = cbuf + iso;
+    long unsigned m;
+    if(iso)
+       cbuf[0] = '\n';
+    if(n < 0)
+    {
+        *ptr++ = '-';
+        n *= -1;
+    }
+    m = trunc(n);
+    ptr += sprintf(ptr, "%lu\n", m);
+    n -= trunc(n);
+    if(n > 0)
+    {
+        *ptr++ = '.';
+        while(n > 0.000000000001)
+        {
+            n *= 10;
+            *ptr++ = (char)n + '0';
+            n = fmod(n, 1);
+        }
+    }
+    if(iso)
+        *ptr = '\n';
+}
 unsigned dispexpr(double start, const struct op *arr, unsigned len)
 {
     char expr[961];
