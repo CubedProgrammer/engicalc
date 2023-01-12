@@ -6,7 +6,7 @@
 #include<unistd.h>
 #include"eval.h"
 #define ring putchar('\a')
-#define addop(t, f)do{if(neg)num *= -1;m = 1;if(oplen == 0)startval = num;else oparr[oplen - 1].second = num;oparr[oplen].func.t = f;oparr[oplen++].second = num = NAN;}while(0)
+#define addop(t, f)do{if(neg)num *= -1;neg = 0;m = 1;if(oplen == 0)startval = num;else oparr[oplen - 1].second = num;oparr[oplen].func.t = f;oparr[oplen++].second = num = NAN;}while(0)
 int glochar(void)
 {
     return tolower(getchar());
@@ -31,6 +31,38 @@ int main(int argl, char *argv[])
     {
         switch(ch)
         {
+            case 0177:
+                if(isnan(num))
+                {
+                    if(oplen == 0)
+                        ring;
+                    else
+                    {
+                        --oplen;
+                        if(oplen == 0)
+                        {
+                            num = startval;
+                            startval = NAN;
+                        }
+                        else
+                        {
+                            num = oparr[oplen - 1].second;
+                            oparr[oplen - 1].second = NAN;
+                        }
+                    }
+                }
+                else if(m == 1)
+                {
+                    num = trunc(num / 10);
+                    if(num == 0)
+                        num = NAN;
+                }
+                else
+                {
+                    m *= 10;
+                    num = trunc(num / m) * m;
+                }
+                break;
             case'+':
                 addop(bi, addition);
                 break;
@@ -81,10 +113,26 @@ int main(int argl, char *argv[])
                 break;
             case'=':
             case'\n':
-                oparr[oplen - 1].second = num;
-                printf("\n%f\n", eval(startval, oparr, oplen));
-                num = startval = NAN;
-                oplen = 0;
+                if(neg)
+                    num *= -1;
+                if(oplen == 0)
+                {
+                    startval = num;
+                    if(startval == startval)
+                    {
+                        printf("\n%f\n", startval);
+                        num = startval = NAN;
+                    }
+                    else
+                        ring;
+                }
+                else
+                {
+                    oparr[oplen - 1].second = num;
+                    printf("\n%f\n", eval(startval, oparr, oplen));
+                    num = startval = NAN;
+                    oplen = 0;
+                }
                 break;
             default:
                 if(isnan(num))
@@ -101,20 +149,23 @@ int main(int argl, char *argv[])
                     }
                 }
                 else if(ch == 'n')
-                    neg = 1;
+                    neg = !neg;
                 else if(ch == '.')
                     m = 0.1;
                 else
                     ring;
         }
+        fwrite(space, 1, exprlen + 1, stdout);
+        putchar('\r');
         if(startval == startval)
-        {
-            fwrite(space, 1, exprlen + 1, stdout);
-            putchar('\r');
             exprlen = dispexpr(startval, oparr, oplen);
-            if(num == num)
-                exprlen += printf("%.3f", num);
+        if(num == num)
+        {
+            if(neg)
+                putchar('-');
+            exprlen += printf("%.3f", num) + neg;
         }
+
     }
     tcsetattr(STDIN_FILENO, TCSANOW, &old);
     return 0;
