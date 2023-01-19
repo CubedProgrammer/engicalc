@@ -62,17 +62,28 @@ unsigned putnum(double n, char iso, char *buf)
         *ptr++ = '-';
         n *= -1;
     }
-    m = trunc(n);
-    ptr += sprintf(ptr, "%lu", m);
-    n -= m;
-    if(n > 0)
+    if(fabs(n - E) < 0.0000000000001)
+        *ptr++ = 'E';
+    else if(fabs(n - PI) < 0.0000000000001)
     {
-        *ptr++ = '.';
-        for(;n > 0.000000000001 && dig < 12; ++dig)
+        *ptr = 'P';
+        ptr[1] = 'I';
+        ptr += 2;
+    }
+    else
+    {
+        m = trunc(n);
+        ptr += sprintf(ptr, "%lu", m);
+        n -= m;
+        if(n > 0)
         {
-            n *= 10;
-            *ptr++ = (char)n + '0';
-            n = fmod(n, 1);
+            *ptr++ = '.';
+            for(;n > 0.000000000001 && dig < 12; ++dig)
+            {
+                n *= 10;
+                *ptr++ = (char)n + '0';
+                n = fmod(n, 1);
+            }
         }
     }
     if(iso)

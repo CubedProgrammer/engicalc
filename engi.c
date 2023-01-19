@@ -6,14 +6,14 @@
 #include<unistd.h>
 #include"eval.h"
 #define ring putchar('\a')
-#define addop(t, f)do{if(neg)num *= -1;neg = 0;m = 1;if(oplen == 0)startval = num;else oparr[oplen - 1].second = num;oparr[oplen].func.t = f;oparr[oplen++].second = num = NAN;}while(0)
+#define addop(t, f)do{if(neg)num *= -1;neg = 0;m = 1;if(oplen == 0)startval = num;else oparr[oplen - 1].second = num;if(isnan(startval)){ring;continue;}oparr[oplen].func.t = f;oparr[oplen++].second = num = NAN;}while(0)
 int glochar(void)
 {
     return tolower(getchar());
 }
 int main(int argl, char *argv[])
 {
-    double num, startval = NAN;
+    double num = NAN, startval = NAN;
     double m = 1;
     char neg = 0;
     char space[441];
@@ -153,7 +153,10 @@ int main(int argl, char *argv[])
                 else if(ch == '.')
                     m = 0.1;
                 else
+                {
+                    num = num == 0 ? NAN : num;
                     ring;
+                }
         }
         fwrite(space, 1, exprlen + 1, stdout);
         putchar('\r');
