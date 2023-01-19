@@ -44,25 +44,31 @@ unsigned bfname(char *expr, double(*func)(double x, double y))
         --len;
     return len;
 }
-void putnum(double n, char iso)
+unsigned stdputnum(double n, char iso)
 {
     char cbuf[31];
-    char *ptr = cbuf + iso;
+    unsigned cnt = putnum(n, iso, cbuf);
+    return fwrite(cbuf, 1, cnt, stdout);
+}
+unsigned putnum(double n, char iso, char *buf)
+{
+    char *ptr = buf + iso;
     long unsigned m;
+    unsigned dig = 0;
     if(iso)
-       cbuf[0] = '\n';
+       *buf = '\n';
     if(n < 0)
     {
         *ptr++ = '-';
         n *= -1;
     }
     m = trunc(n);
-    ptr += sprintf(ptr, "%lu\n", m);
-    n -= trunc(n);
+    ptr += sprintf(ptr, "%lu", m);
+    n -= m;
     if(n > 0)
     {
         *ptr++ = '.';
-        while(n > 0.000000000001)
+        for(;n > 0.000000000001 && dig < 12; ++dig)
         {
             n *= 10;
             *ptr++ = (char)n + '0';
@@ -70,7 +76,8 @@ void putnum(double n, char iso)
         }
     }
     if(iso)
-        *ptr = '\n';
+        *ptr++ = '\n';
+    return ptr - buf;
 }
 unsigned dispexpr(double start, const struct op *arr, unsigned len)
 {
@@ -82,13 +89,13 @@ unsigned dispexpr(double start, const struct op *arr, unsigned len)
             exprlen += ufname(expr + exprlen, arr[i].func.u);
         expr[exprlen++] = '(';
     }
-    exprlen += sprintf(expr + exprlen, "%.3f", start);
+    exprlen += putnum(start, 0, expr + exprlen);
     for(unsigned i = 0; i < len; ++i)
     {
         expr[exprlen++] = ')';
         exprlen += bfname(expr + exprlen, arr[i].func.bi);
         if(!isnan(arr[i].second))
-            exprlen += sprintf(expr + exprlen, "%.3f", arr[i].second);
+            exprlen += putnum(arr[i].second, 0, expr + exprlen);
     }
     fwrite(expr, 1, exprlen, stdout);
     return exprlen;

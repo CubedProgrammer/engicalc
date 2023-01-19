@@ -120,7 +120,7 @@ int main(int argl, char *argv[])
                     startval = num;
                     if(startval == startval)
                     {
-                        printf("\n%f\n", startval);
+                        stdputnum(startval, 1);
                         num = startval = NAN;
                     }
                     else
@@ -129,7 +129,7 @@ int main(int argl, char *argv[])
                 else
                 {
                     oparr[oplen - 1].second = num;
-                    printf("\n%f\n", eval(startval, oparr, oplen));
+                    stdputnum(eval(startval, oparr, oplen), 1);
                     num = startval = NAN;
                     oplen = 0;
                 }
@@ -163,9 +163,8 @@ int main(int argl, char *argv[])
         {
             if(neg)
                 putchar('-');
-            exprlen += printf("%.3f", num) + neg;
+            exprlen += stdputnum(num, 0) + neg;
         }
-
     }
     tcsetattr(STDIN_FILENO, TCSANOW, &old);
     return 0;
